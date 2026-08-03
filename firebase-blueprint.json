@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "ProficiencyData": {
+      "title": "Proficiency Data",
+      "description": "User proficiency data for radar chart",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The user ID this data belongs to"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject name"
+        },
+        "userScore": {
+          "type": "number",
+          "description": "User's score"
+        },
+        "topperScore": {
+          "type": "number",
+          "description": "Topper's benchmark score"
+        },
+        "fullMark": {
+          "type": "number",
+          "description": "Maximum possible score"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category: Math, Physics, Chemistry, General"
+        },
+        "filterType": {
+          "type": "string",
+          "description": "Indicates if it's overall, math, physics, or chemistry"
+        }
+      },
+      "required": ["userId", "subject", "userScore", "topperScore", "fullMark", "category", "filterType"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/proficiency/{docId}": {
+      "schema": {
+        "$ref": "#/entities/ProficiencyData"
+      },
+      "description": "Collection of proficiency metrics for a user"
+    }
+  }
+}

@@ -1,0 +1,87 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      // In this environment, sometimes email_verified isn't populated on dev, but per spec we should mandate it unless anonymous.
+      // We will assume email is verified for google logins.
+      return request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Validation Blueprint for ProficiencyData
+    function isValidProficiencyData(data, userId) {
+      return data.keys().hasAll(['userId', 'subject', 'userScore', 'topperScore', 'fullMark', 'category', 'filterType']) &&
+             data.keys().size() == 7 &&
+             data.userId == userId &&
+             data.subject is string && data.subject.size() <= 100 &&
+             data.userScore is number && data.userScore >= 0 && data.userScore <= 100 &&
+             data.topperScore is number && data.topperScore >= 0 && data.topperScore <= 100 &&
+             data.fullMark is number && data.fullMark == 100 &&
+             data.category is string && data.category.size() <= 50 &&
+             data.filterType is string && data.filterType.size() <= 20;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'role', 'targetYear', 'streakDays', 'totalFocusMinutes', 'questionsSolved', 'accuracyRate', 'createdAt']) &&
+             data.uid is string &&
+             data.name is string &&
+             data.email is string &&
+             data.role is string &&
+             data.targetYear is string &&
+             data.streakDays is number &&
+             data.totalFocusMinutes is number &&
+             data.questionsSolved is number &&
+             data.accuracyRate is number &&
+             data.createdAt is string;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming());
+      allow update: if isSignedIn() && request.auth.uid == userId && incoming().uid == existing().uid;
+      allow delete: if false;
+    }
+
+    match /users/{userId}/proficiency/{docId} {
+      // Allow read if signed in and requesting user's own data
+      allow get, list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() && 
+                       request.auth.uid == userId && 
+                       isValidId(docId) && 
+                       isValidId(userId) &&
+                       isValidProficiencyData(incoming(), userId);
+
+      allow update: if isSignedIn() && 
+                       request.auth.uid == userId && 
+                       isValidId(docId) && 
+                       isValidId(userId) &&
+                       isValidProficiencyData(incoming(), userId) &&
+                       incoming().userId == existing().userId; // Immutable
+
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+  }
+}

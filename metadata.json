@@ -1,0 +1,6 @@
+{
+  "name": "NeuroLearn AI",
+  "description": "An AI-powered learning platform for Intermediate MPC students preparing for JEE Main, JEE Advanced, EAMCET, and Board Exams.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
