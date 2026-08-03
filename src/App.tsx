@@ -75,8 +75,8 @@ export default function App() {
     <BrowserRouter>
       <AppLayout>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/battleground" element={<Battleground />} />
           <Route path="/battleground/test" element={<TestArena />} />
           <Route path="/driller" element={<Driller />} />
